@@ -1,0 +1,186 @@
+<html>
+  <head>
+    <title>Turbulent Dynamics Geometry Input Rushton Turbine</title>
+    <link rel="stylesheet" type="text/css" href="lib/x3dom-1.7.2/x3dom.css" />
+    <script type="text/javascript" src="lib/x3dom-1.7.2/x3dom.js"></script>
+    <script type='text/javascript' src='lib/jquery-1.11.1/jquery.js'></script>
+    <script type="text/javascript" src="lib/app.js"></script>
+  </head>
+  <body>
+    <h1>Turbulent Dynamics Geometry Input Rushton Turbine</h1>
+    <div style="display: flex">
+      <div style="flex: 1">
+        <div style="display: flex">
+          <div>Tank Diameter:</div>
+          <div id="tank-diameter"></div>
+        </div>
+        <div style="display: flex">
+          <div>Tank Height:</div>
+          <div id="tank-height"></div>
+        </div>
+        <div style="display: flex">
+          <div>Shaft Radius:</div>
+          <div id="shaft-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Disk Radius:</div>
+          <div id="disk-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Disk Height:</div>
+          <div id="disk-height"></div>
+        </div>
+        <div style="display: flex">
+          <div>Hub Radius:</div>
+          <div id="hub-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Hub Height:</div>
+          <div id="hub-height"></div>
+        </div>
+        <div style="display: flex">
+          <div>Impeller Inner Radius:</div>
+          <div id="impeller-inner-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Impeller Outer Radius:</div>
+          <div id="impeller-outer-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Impeller Width:</div>
+          <div id="impeller-width"></div>
+        </div>
+        <div style="display: flex">
+          <div>Impeller Height:</div>
+          <div id="impeller-height"></div>
+        </div>
+        <div style="display: flex">
+          <div>Baffle Inner Radius:</div>
+          <div id="baffle-inner-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Baffle Outer Radius:</div>
+          <div id="baffle-outer-radius"></div>
+        </div>
+        <div style="display: flex">
+          <div>Baffle Width:</div>
+          <div id="baffle-width"></div>
+        </div>
+      </div>
+      <div style="flex: 1">
+        <x3d style="width: 100%; height: 400px;">
+          <scene>
+            <transform scale="0.02,0.02,0.02">
+              <shape id="tank">
+                <appearance>
+                  <material></material>
+                </appearance>
+                <cylinder></cylinder>
+              </shape>
+              <shape id="shaft">
+                <appearance>
+                  <material class="rigid-surface"></material>
+                </appearance>
+                <cylinder></cylinder>
+              </shape>
+              <transform translation="0,-50,0">
+                <shape id="disk">
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <cylinder></cylinder>
+                </shape>
+                <shape id="hub">
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <cylinder></cylinder>
+                </shape>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+                <transform class="impeller">
+                  <shape>
+                    <appearance>
+                      <material class="rigid-surface"></material>
+                    </appearance>
+                    <box></box>
+                  </shape>
+                </transform>
+              </transform>
+              <transform class="baffle">
+                <shape>
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <box></box>
+                </shape>
+              </transform>
+              <transform class="baffle">
+                <shape>
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <box></box>
+                </shape>
+              </transform>
+              <transform class="baffle">
+                <shape>
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <box></box>
+                </shape>
+              </transform>
+              <transform class="baffle">
+                <shape>
+                  <appearance>
+                    <material class="rigid-surface"></material>
+                  </appearance>
+                  <box></box>
+                </shape>
+              </transform>
+            </transform>
+          </scene>
+        </x3d>
+      </div>
+    </div>
+  </body>
+</html>
