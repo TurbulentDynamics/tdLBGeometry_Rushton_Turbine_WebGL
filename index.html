@@ -12,7 +12,7 @@
       <div style="flex: 1">
         <div style="display: flex">
           <div>Tank Diameter:</div>
-          <div id="tank-diameter"></div>
+          <input type="number" id="tank-diameter" min="50" />
         </div>
         <div style="display: flex">
           <div>Tank Height:</div>
@@ -39,6 +39,10 @@
           <div id="hub-height"></div>
         </div>
         <div style="display: flex">
+          <div>Impeller Count:</div>
+          <input type="number" id="impeller-count" min="1" />
+        </div>
+        <div style="display: flex">
           <div>Impeller Inner Radius:</div>
           <div id="impeller-inner-radius"></div>
         </div>
@@ -55,6 +59,10 @@
           <div id="impeller-height"></div>
         </div>
         <div style="display: flex">
+          <div>Baffle Count:</div>
+          <input type="number" id="baffle-count" min="1" />
+        </div>
+        <div style="display: flex">
           <div>Baffle Inner Radius:</div>
           <div id="baffle-inner-radius"></div>
         </div>
@@ -65,6 +73,9 @@
         <div style="display: flex">
           <div>Baffle Width:</div>
           <div id="baffle-width"></div>
+        </div>
+        <div style="display: flex">
+          <button type="button" id="submit">Submit</button>
         </div>
       </div>
       <div style="flex: 1">
@@ -83,7 +94,7 @@
                 </appearance>
                 <cylinder></cylinder>
               </shape>
-              <transform translation="0,-50,0">
+              <transform id="kernel" translation="0,-50,0">
                 <shape id="disk">
                   <appearance>
                     <material class="rigid-surface"></material>
@@ -95,86 +106,6 @@
                     <material class="rigid-surface"></material>
                   </appearance>
                   <cylinder></cylinder>
-                </shape>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-                <transform class="impeller">
-                  <shape>
-                    <appearance>
-                      <material class="rigid-surface"></material>
-                    </appearance>
-                    <box></box>
-                  </shape>
-                </transform>
-              </transform>
-              <transform class="baffle">
-                <shape>
-                  <appearance>
-                    <material class="rigid-surface"></material>
-                  </appearance>
-                  <box></box>
-                </shape>
-              </transform>
-              <transform class="baffle">
-                <shape>
-                  <appearance>
-                    <material class="rigid-surface"></material>
-                  </appearance>
-                  <box></box>
-                </shape>
-              </transform>
-              <transform class="baffle">
-                <shape>
-                  <appearance>
-                    <material class="rigid-surface"></material>
-                  </appearance>
-                  <box></box>
-                </shape>
-              </transform>
-              <transform class="baffle">
-                <shape>
-                  <appearance>
-                    <material class="rigid-surface"></material>
-                  </appearance>
-                  <box></box>
                 </shape>
               </transform>
             </transform>
