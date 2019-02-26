@@ -6,6 +6,25 @@ var TrackballControls = require('three-trackballcontrols');
 var _ = require('lodash');
 
 class Turbine extends Component {
+  colors = {
+    normal: {
+      tank: 0xcccccc,
+      shaft: 0xdddddd,
+      disk: 0xdddddd,
+      hub: 0xdddddd,
+      blade: 0xdddddd,
+      baffle: 0xdddddd
+    },
+    hover: {
+      tank: 0x0000ff,
+      shaft: 0x00ff00,
+      disk: 0x00ff00,
+      hub: 0x00ff00,
+      blade: 0x00ff00,
+      baffle: 0x00ff00
+    }
+  }
+
   componentDidMount() {
     this.glRenderer = new THREE.WebGLRenderer({
       canvas: this.refs.painter,
@@ -43,13 +62,66 @@ class Turbine extends Component {
     });
     this.startAutoRotation();
 
-    this.raycater = new THREE.Raycaster();
-    this.mousePos = { x: 0, y: 0 };
+    this.raycaster = new THREE.Raycaster();
+    this.normalVector = new THREE.Vector2();
     window.addEventListener('mousemove', event => {
       // calculate mouse position in normalized device coordinates
       // (-1 to +1) for both components
-      this.mousePos.x = (event.clientX / window.innerWidth) * 2 - 1;
-      this.mousePos.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      this.normalVector.x = ((event.clientX - 250) / this.props.width) * 2 - 1;
+      this.normalVector.y = -((event.clientY - 64) / this.props.height) * 2 + 1;
+
+      // update the picking ray with the camera and mouse position
+      this.raycaster.setFromCamera(this.normalVector, this.camera);
+
+      // calculate objects intersecting the picking ray
+      var intersects = this.raycaster.intersectObjects(this.scene.children, true);
+      intersects = this.excludeTankFromIntersects(intersects);
+      if (this.checkFirstObject(this.tank, intersects)) {
+        this.tank.material.color.set(this.colors.hover.tank);
+        this.props.onHoverObject('tank');
+      } else {
+        this.tank.material.color.set(this.colors.normal.tank);
+      }
+      if (this.checkFirstObject(this.shaft, intersects)) {
+        this.shaft.material.color.set(this.colors.hover.shaft);
+        this.props.onHoverObject('shaft');
+      } else {
+        this.shaft.material.color.set(this.colors.normal.shaft);
+      }
+      if (this.checkFirstObject(this.disk, intersects)) {
+        this.disk.material.color.set(this.colors.hover.disk);
+        this.props.onHoverObject('disk');
+      } else {
+        this.disk.material.color.set(this.colors.normal.disk);
+      }
+      if (this.checkFirstObject(this.hub, intersects)) {
+        this.hub.material.color.set(this.colors.hover.hub);
+        this.props.onHoverObject('hub');
+      } else {
+        this.hub.material.color.set(this.colors.normal.hub);
+      }
+      if (this.checkFirstObject(this.hub, intersects)) {
+        this.hub.material.color.set(this.colors.hover.hub);
+        this.props.onHoverObject('hub');
+      } else {
+        this.hub.material.color.set(this.colors.normal.hub);
+      }
+      this.blades.forEach((blade, index) => {
+        if (this.checkFirstObject(blade, intersects)) {
+          this.blades[index].material.color.set(this.colors.hover.blade);
+          this.props.onHoverObject('blade');
+        } else {
+          this.blades[index].material.color.set(this.colors.normal.blade);
+        }
+      });
+      this.baffles.forEach((baffle, index) => {
+        if (this.checkFirstObject(baffle, intersects)) {
+          this.baffles[index].material.color.set(this.colors.hover.baffle);
+          this.props.onHoverObject('baffle');
+        } else {
+          this.baffles[index].material.color.set(this.colors.normal.baffle);
+        }
+      });
     });
 
     this.createTank();
@@ -281,6 +353,30 @@ class Turbine extends Component {
     }
   }
 
+  excludeTankFromIntersects(intersects: Array) {
+    var onlyTank = true;
+    intersects.forEach(intersect => {
+      if (intersect.object.uuid !== this.tank.uuid) {
+        onlyTank = false;
+        return false;
+      }
+    }, this);
+    if (onlyTank) {
+      return intersects;
+    }
+    return intersects.filter((intersect, index) => {
+      return intersect.object.uuid !== this.tank.uuid;
+    }, this);
+  }
+
+  checkFirstObject(needle: THREE.Object3D, haystack: Array) {
+    if (haystack.length > 0) {
+      return needle.uuid === haystack[0].object.uuid;
+    } else {
+      return false;
+    }
+  }
+
   render() {
     return (
       <canvas ref="painter" width={this.props.width} height={this.props.height}></canvas>
@@ -308,6 +404,7 @@ Turbine.propTypes = {
   baffleInnerRadius: PropTypes.number.isRequired,
   baffleOuterRadius: PropTypes.number.isRequired,
   baffleWidth: PropTypes.number.isRequired,
+  onHoverObject: PropTypes.func
 };
 
 export default Turbine;

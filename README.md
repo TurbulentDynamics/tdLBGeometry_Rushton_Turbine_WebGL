@@ -1,5 +1,13 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Demo
+
+Minimal demo page is included in sample directory.
+
+[Online demo](https://TurbulentDynamics.github.io/index.html) is also available!
+
+## Installation
+
 ## Available Scripts
 
 In the project directory, you can run:
