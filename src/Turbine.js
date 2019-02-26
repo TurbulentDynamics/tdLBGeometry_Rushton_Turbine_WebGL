@@ -35,12 +35,12 @@ class Turbine extends Component {
 
     this.scene = new THREE.Scene();
 
-    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    this.camera.position.set(0, 0, this.props.tankDiameter * 4 / 3);
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
+    this.camera.position.set(0, 0, this.props.tankDiameter * 3);
     this.scene.add(this.camera);
 
     this.light = new THREE.PointLight(0xffffff, 0.3);
-    this.light.position.set(0, 0, this.props.tankDiameter * 4 / 3);
+    this.light.position.set(0, 0, this.props.tankDiameter * 3);
     this.scene.add(this.light);
 
     this.controls = new TrackballControls(this.camera, this.refs.painter);
@@ -124,6 +124,9 @@ class Turbine extends Component {
       });
     });
 
+    this.createAxis();
+    this.createPlane();
+
     this.createTank();
     this.createShaft();
     this.createDisk();
@@ -202,6 +205,71 @@ class Turbine extends Component {
     this.controls.update();
 
     this.glRenderer.render(this.scene, this.camera);
+  }
+
+  createAxis() {
+    var axis = new THREE.AxisHelper(300);
+    this.scene.add(axis);
+
+    var loader = new THREE.FontLoader();
+    loader.load('fonts/helvetiker_regular.typeface.json', font => {
+      var geoOption = {
+        font: font,
+        size: 30,
+        height: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelSegments: 5
+      };
+
+      // Position of axes extremities
+      var positionEndAxes = axis.geometry.attributes.position;
+
+      var xGeometry = new THREE.TextGeometry('X', geoOption);
+      var xMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0xff0000)
+      });
+      var xLabel = new THREE.Mesh(xGeometry, xMaterial);
+      xLabel.position.x = positionEndAxes.getX(0) + 300;
+      xLabel.position.y = 0;
+      xLabel.position.z = 0;
+      this.scene.add(xLabel);
+
+      var yGeometry = new THREE.TextGeometry('Y', geoOption);
+      var yMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0x00ff00)
+      });
+      var yLabel = new THREE.Mesh(yGeometry, yMaterial);
+      yLabel.position.x = 0;
+      yLabel.position.y = positionEndAxes.getY(1) + 300;
+      yLabel.position.z = 0;
+      this.scene.add(yLabel);
+
+      var zGeometry = new THREE.TextGeometry('Z', geoOption);
+      var zMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0x0000ff)
+      });
+      var zLabel = new THREE.Mesh(zGeometry, zMaterial);
+      zLabel.position.x = 0;
+      zLabel.position.y = 0;
+      zLabel.position.z = positionEndAxes.getZ(2) + 300;
+      this.scene.add(zLabel);
+    });
+  }
+
+  createPlane() {
+    var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
+    var material = new THREE.MeshPhongMaterial({
+      color: 0xffff00,
+      specular: 0x101010
+    });
+    var plane = new THREE.Mesh(geometry, material);
+    plane.rotation.x = -(Math.PI / 2);
+    plane.position.y = -150;
+    plane.receiveShadow = true;
+    this.scene.add(plane);
   }
 
   createTankGeometry({ tankDiameter, tankHeight }) {
@@ -340,7 +408,7 @@ class Turbine extends Component {
   }
 
   updateBaffles(props) {
-    const { baffleInnerRadius, baffleOuterRadius, tankHeight } = props;
+    const { baffleInnerRadius, baffleOuterRadius } = props;
     var distance = (baffleInnerRadius + baffleOuterRadius) / 2;
     var yAxis = new THREE.Vector3(0, 1, 0);
     for (var i = 0; i < this.baffles.length; i++) {
