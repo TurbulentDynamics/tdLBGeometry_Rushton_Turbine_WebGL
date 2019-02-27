@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Checkbox, Icon, InputNumber, Layout, Menu } from 'antd';
+import { Checkbox, Icon, InputNumber, Layout, Menu, Radio } from 'antd';
 import Turbine from './Turbine';
 
 import 'antd/dist/antd.css';
@@ -19,6 +19,7 @@ export default class App extends Component {
       tankHeight: unit,
       shaftRadius: unit * 2 / 75,
       kernelAutoRotation: true,
+      kernelRotationDir: 'clockwise',
       diskRadius: unit / 8,
       diskHeight: unit / 75,
       hubRadius: unit * 4 / 75,
@@ -38,12 +39,12 @@ export default class App extends Component {
 
   componentDidMount() {
     this.setState({
-      canvasWidth: window.innerWidth - 250,
+      canvasWidth: window.innerWidth - 320,
       canvasHeight: window.innerHeight - 64
     });
     this.handleResize = () => {
       this.setState({
-        canvasWidth: window.innerWidth - 250,
+        canvasWidth: window.innerWidth - 320,
         canvasHeight: window.innerHeight - 64
       });
     }
@@ -62,6 +63,10 @@ export default class App extends Component {
     this.setState({ kernelAutoRotation: event.target.checked });
   }
 
+  handleRadio(event) {
+    this.setState({ kernelRotationDir: event.target.value });
+  }
+
   handleHoverObject(name) {
     this.setState({ hoverObject: name });
   }
@@ -70,10 +75,17 @@ export default class App extends Component {
     return (
       <div className="App">
         <Layout style={{ height: '100%' }}>
-          <Sider width={250} style={{ overflowY: 'auto' }}>
+          <Sider width={320} style={{ overflowY: 'auto' }}>
             <div className="logo"></div>
-            <Menu theme="dark" mode="inline" openKeys={[this.state.hoverObject]}>
-              <Menu.SubMenu key="tank" title={<span><Icon type="mail" /><span>Tank</span></span>} isOpen={this.state.hoverObject === 'tank'}>
+            <Menu theme="dark" mode="inline">
+              <Menu.SubMenu key="tank" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'tank' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'tank' ? 'bold' : 'normal'
+                  }}>Tank</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem1">
                   <span>Diameter</span>
                   <InputNumber min={100} defaultValue={this.state.tankDiameter} onChange={(value) => this.handleChange('tankDiameter', value)} />
@@ -83,13 +95,27 @@ export default class App extends Component {
                   <InputNumber min={100} defaultValue={this.state.tankHeight} onChange={(value) => this.handleChange('tankHeight', value)} />
                 </Menu.Item>
               </Menu.SubMenu>
-              <Menu.SubMenu key="shaft" title={<span><Icon type="mail" /><span>Shaft</span></span>}>
+              <Menu.SubMenu key="shaft" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'shaft' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'shaft' ? 'bold' : 'normal'
+                  }}>Shaft</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem3">
                   <span>Radius</span>
                   <InputNumber min={1} defaultValue={this.state.shaftRadius} onChange={(value) => this.handleChange('shaftRadius', value)} />
                 </Menu.Item>
               </Menu.SubMenu>
-              <Menu.SubMenu key="disk" title={<span><Icon type="mail" /><span>Disk</span></span>}>
+              <Menu.SubMenu key="disk" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'disk' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'disk' ? 'bold' : 'normal'
+                  }}>Disk</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem4">
                   <span>Radius</span>
                   <InputNumber min={1} defaultValue={this.state.diskRadius} onChange={(value) => this.handleChange('diskRadius', value)} />
@@ -99,7 +125,14 @@ export default class App extends Component {
                   <InputNumber min={1} defaultValue={this.state.diskHeight} onChange={(value) => this.handleChange('diskHeight', value)} />
                 </Menu.Item>
               </Menu.SubMenu>
-              <Menu.SubMenu key="hub" title={<span><Icon type="mail" /><span>Hub</span></span>}>
+              <Menu.SubMenu key="hub" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'hub' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'hub' ? 'bold' : 'normal'
+                  }}>Hub</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem6">
                   <span>Radius</span>
                   <InputNumber min={1} defaultValue={this.state.hubRadius} onChange={(value) => this.handleChange('hubRadius', value)} />
@@ -109,7 +142,14 @@ export default class App extends Component {
                   <InputNumber min={1} defaultValue={this.state.hubHeight} onChange={(value) => this.handleChange('hubHeight', value)} />
                 </Menu.Item>
               </Menu.SubMenu>
-              <Menu.SubMenu key="blade" title={<span><Icon type="mail" /><span>Blade</span></span>}>
+              <Menu.SubMenu key="blade" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'blade' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'blade' ? 'bold' : 'normal'
+                  }}>Blade</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem8">
                   <span>Count</span>
                   <InputNumber min={1} defaultValue={this.state.bladeCount} onChange={(value) => this.handleChange('bladeCount', value)} />
@@ -133,8 +173,21 @@ export default class App extends Component {
                 <Menu.Item key="menuitem13">
                   <Checkbox checked={this.state.kernelAutoRotation} onChange={this.handleAutoRotation.bind(this)}>Auto Rotation</Checkbox>
                 </Menu.Item>
+                <Menu.Item key="menuitem14">
+                  <Radio.Group onChange={this.handleRadio.bind(this)} value={this.state.kernelRotationDir}>
+                    <Radio value="clockwise">Clockwise</Radio>
+                    <Radio value="counter-clockwise">Counter-Clockwise</Radio>
+                  </Radio.Group>
+                </Menu.Item>
               </Menu.SubMenu>
-              <Menu.SubMenu key="baffle" title={<span><Icon type="mail" /><span>Baffle</span></span>}>
+              <Menu.SubMenu key="baffle" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'baffle' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'baffle' ? 'bold' : 'normal'
+                  }}>Baffle</span>
+                </span>
+              }>
                 <Menu.Item key="menuitem14">
                   <span>Count</span>
                   <InputNumber min={1} defaultValue={this.state.baffleCount} onChange={(value) => this.handleChange('baffleCount', value)} />
@@ -166,6 +219,7 @@ export default class App extends Component {
                 tankHeight={this.state.tankHeight}
                 shaftRadius={this.state.shaftRadius}
                 kernelAutoRotation={this.state.kernelAutoRotation}
+                kernelRotationDir={this.state.kernelRotationDir}
                 diskRadius={this.state.diskRadius}
                 diskHeight={this.state.diskHeight}
                 hubRadius={this.state.hubRadius}

@@ -67,7 +67,7 @@ class Turbine extends Component {
     window.addEventListener('mousemove', event => {
       // calculate mouse position in normalized device coordinates
       // (-1 to +1) for both components
-      this.normalVector.x = ((event.clientX - 250) / this.props.width) * 2 - 1;
+      this.normalVector.x = ((event.clientX - 320) / this.props.width) * 2 - 1;
       this.normalVector.y = -((event.clientY - 64) / this.props.height) * 2 + 1;
 
       // update the picking ray with the camera and mouse position
@@ -178,8 +178,16 @@ class Turbine extends Component {
 
   startAutoRotation() {
     this.timerId = window.setInterval(() => {
-      this.kernelAngle = (this.kernelAngle + 4) % 360;
-      this.updateBlades(this.props);
+      switch (this.props.kernelRotationDir) {
+        case 'clockwise':
+          this.kernelAngle = (this.kernelAngle + 4) % 360;
+          this.updateBlades(this.props);
+          break;
+        case 'counter-clockwise':
+          this.kernelAngle = (this.kernelAngle - 4) % 360;
+          this.updateBlades(this.props);
+          break;
+      }
     }, 60);
   }
 
@@ -459,6 +467,7 @@ Turbine.propTypes = {
   tankHeight: PropTypes.number.isRequired,
   shaftRadius: PropTypes.number.isRequired,
   kernelAutoRotation: PropTypes.bool,
+  kernelRotationDir: PropTypes.string,
   diskRadius: PropTypes.number.isRequired,
   diskHeight: PropTypes.number.isRequired,
   hubRadius: PropTypes.number.isRequired,
