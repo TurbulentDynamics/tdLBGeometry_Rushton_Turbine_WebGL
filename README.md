@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Demo
@@ -74,3 +75,9 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `npm run build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+=======
+# Turbulent Dynamics Rushton Turbine Geometry Definition
+
+[Graphical Frontend available here](https://turbulentdynamics.github.io/TD_GeomInput_Rushton_Turbine/WebGL)
+
+>>>>>>> 11534a5841c8328b1dc0c944c80c88e35b1d4793
