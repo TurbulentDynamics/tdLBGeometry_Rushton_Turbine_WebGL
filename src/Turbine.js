@@ -223,12 +223,12 @@ class Turbine extends Component {
     loader.load('fonts/helvetiker_regular.typeface.json', font => {
       var geoOption = {
         font: font,
-        size: 30,
-        height: 5,
+        size: 10,
+        height: 2,
         curveSegments: 12,
         bevelEnabled: true,
-        bevelThickness: 10,
-        bevelSize: 8,
+        bevelThickness: 2,
+        bevelSize: 2,
         bevelSegments: 5
       };
 
