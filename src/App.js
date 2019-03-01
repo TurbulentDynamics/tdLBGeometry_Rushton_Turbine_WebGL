@@ -171,12 +171,18 @@ export default class App extends Component {
                   <InputNumber min={1} defaultValue={this.state.bladeHeight} onChange={(value) => this.handleChange('bladeHeight', value)} />
                 </Menu.Item>
                 <Menu.Item key="menuitem13">
-                  <Checkbox checked={this.state.kernelAutoRotation} onChange={this.handleAutoRotation.bind(this)}>Auto Rotation</Checkbox>
+                  <Checkbox checked={this.state.kernelAutoRotation} onChange={this.handleAutoRotation.bind(this)}>
+                    <span className="ant-menu-control">Auto Rotation</span>
+                  </Checkbox>
                 </Menu.Item>
                 <Menu.Item key="menuitem14">
                   <Radio.Group onChange={this.handleRadio.bind(this)} value={this.state.kernelRotationDir}>
-                    <Radio value="clockwise">Clockwise</Radio>
-                    <Radio value="counter-clockwise">Counter-Clockwise</Radio>
+                    <Radio value="clockwise">
+                      <span className="ant-menu-control">Clockwise</span>
+                    </Radio>
+                    <Radio value="counter-clockwise">
+                      <span className="ant-menu-control">Counter-Clockwise</span>
+                    </Radio>
                   </Radio.Group>
                 </Menu.Item>
               </Menu.SubMenu>
@@ -188,19 +194,19 @@ export default class App extends Component {
                   }}>Baffle</span>
                 </span>
               }>
-                <Menu.Item key="menuitem14">
+                <Menu.Item key="menuitem15">
                   <span>Count</span>
                   <InputNumber min={1} defaultValue={this.state.baffleCount} onChange={(value) => this.handleChange('baffleCount', value)} />
                 </Menu.Item>
-                <Menu.Item key="menuitem15">
+                <Menu.Item key="menuitem16">
                   <span>Inner Radius</span>
                   <InputNumber min={1} defaultValue={this.state.baffleInnerRadius} onChange={(value) => this.handleChange('baffleInnerRadius', value)} />
                 </Menu.Item>
-                <Menu.Item key="menuitem16">
+                <Menu.Item key="menuitem17">
                   <span>Outer Radius</span>
                   <InputNumber min={1} defaultValue={this.state.baffleOuterRadius} onChange={(value) => this.handleChange('baffleOuterRadius', value)} />
                 </Menu.Item>
-                <Menu.Item key="menuitem17">
+                <Menu.Item key="menuitem18">
                   <span>Width</span>
                   <InputNumber min={1} defaultValue={this.state.baffleWidth} onChange={(value) => this.handleChange('baffleWidth', value)} />
                 </Menu.Item>

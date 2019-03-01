@@ -18,3 +18,11 @@
   color: #fff;
   text-align: center;
 }
+
+.ant-menu-control {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ant-menu-control:hover {
+  color: #fff;
+}

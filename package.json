@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "antd": "@2.13.14",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1",
+    "antd": "^3.13.5",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
     "react-scripts": "2.1.5",
     "three": "^0.86.0",
     "three-trackballcontrols": "^0.0.7"

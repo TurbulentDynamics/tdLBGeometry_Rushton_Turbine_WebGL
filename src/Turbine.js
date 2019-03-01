@@ -187,6 +187,8 @@ class Turbine extends Component {
           this.kernelAngle = (this.kernelAngle - 4) % 360;
           this.updateBlades(this.props);
           break;
+        default:
+          break;
       }
     }, 60);
   }
@@ -216,7 +218,15 @@ class Turbine extends Component {
   }
 
   createAxis() {
-    var axis = new THREE.AxisHelper(300);
+    var unit = 300;
+    var axis = new THREE.AxisHelper(unit);
+    var offset = new THREE.Vector3(-(unit / 2), unit / 2, unit / 2);
+    // Don't change the coordinate system and display the axis reversely
+    var positionEndAxes = axis.geometry.attributes.position;
+    axis.geometry.attributes.position.setY(3, -positionEndAxes.getY(3));
+    axis.geometry.attributes.position.setZ(5, -positionEndAxes.getZ(5));
+    // Don't change the coordinate system and move the axis
+    axis.position.add(offset);
     this.scene.add(axis);
 
     var loader = new THREE.FontLoader();
@@ -233,51 +243,53 @@ class Turbine extends Component {
       };
 
       // Position of axes extremities
-      var positionEndAxes = axis.geometry.attributes.position;
-
       var xGeometry = new THREE.TextGeometry('X', geoOption);
       var xMaterial = new THREE.MeshBasicMaterial({
         color: new THREE.Color(0xff0000)
       });
       var xLabel = new THREE.Mesh(xGeometry, xMaterial);
-      xLabel.position.x = positionEndAxes.getX(0) + 300;
-      xLabel.position.y = 0;
-      xLabel.position.z = 0;
+      var xPos = new THREE.Vector3(positionEndAxes.getX(1), positionEndAxes.getY(1), positionEndAxes.getZ(1));
+      xPos.add(offset);
+      xLabel.position.copy(xPos).add(new THREE.Vector3(0, 10, 0));
       this.scene.add(xLabel);
+      var xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 20, 0xff0000, 10, 5);
+      xArrow.position.copy(xPos);
+      this.scene.add(xArrow);
 
       var yGeometry = new THREE.TextGeometry('Y', geoOption);
       var yMaterial = new THREE.MeshBasicMaterial({
         color: new THREE.Color(0x00ff00)
       });
       var yLabel = new THREE.Mesh(yGeometry, yMaterial);
-      yLabel.position.x = 0;
-      yLabel.position.y = positionEndAxes.getY(1) + 300;
-      yLabel.position.z = 0;
+      var yPos = new THREE.Vector3(positionEndAxes.getX(3), positionEndAxes.getY(3), positionEndAxes.getZ(3));
+      yPos.add(offset);
+      yLabel.position.copy(yPos).add(new THREE.Vector3(0, -10, 10));
+      yLabel.rotation.set(-Math.PI, Math.PI / 2, 0);
       this.scene.add(yLabel);
+      var yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 0), 20, 0x00ff00, 10, 5);
+      yArrow.position.copy(yPos);
+      this.scene.add(yArrow);
 
       var zGeometry = new THREE.TextGeometry('Z', geoOption);
       var zMaterial = new THREE.MeshBasicMaterial({
         color: new THREE.Color(0x0000ff)
       });
       var zLabel = new THREE.Mesh(zGeometry, zMaterial);
-      zLabel.position.x = 0;
-      zLabel.position.y = 0;
-      zLabel.position.z = positionEndAxes.getZ(2) + 300;
+      var zPos = new THREE.Vector3(positionEndAxes.getX(5), positionEndAxes.getY(5), positionEndAxes.getZ(5));
+      zPos.add(offset);
+      zLabel.position.copy(zPos).add(new THREE.Vector3(0, -10, 0));
+      zLabel.rotation.set(-Math.PI, -(Math.PI / 2), 0);
       this.scene.add(zLabel);
+      var zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), 20, 0x0000ff, 10, 5);
+      zArrow.position.copy(zPos);
+      this.scene.add(zArrow);
     });
   }
 
   createPlane() {
-    var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
-    var material = new THREE.MeshPhongMaterial({
-      color: 0xffff00,
-      specular: 0x101010
-    });
-    var plane = new THREE.Mesh(geometry, material);
-    plane.rotation.x = -(Math.PI / 2);
-    plane.position.y = -150;
-    plane.receiveShadow = true;
-    this.scene.add(plane);
+    var grid = new THREE.GridHelper(1000, 50);
+    grid.position.y = -(this.props.tankHeight / 2);
+    this.scene.add(grid);
   }
 
   createTankGeometry({ tankDiameter, tankHeight }) {
