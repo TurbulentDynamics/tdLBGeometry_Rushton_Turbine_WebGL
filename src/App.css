@@ -14,6 +14,10 @@
   width: 85px;
 }
 
+.ant-menu-item > span.trans-pan {
+  width: 100px;
+}
+
 .ant-layout-header > h1 {
   color: #fff;
   text-align: center;
@@ -25,4 +29,31 @@
 
 .ant-menu-control:hover {
   color: #fff;
+}
+.subMenu .ant-menu-sub.ant-menu-inline > .ant-menu-item{
+  height: 35px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.transCheck {
+  padding-right: 10px;
+}
+
+.setting-item {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.setting button {
+  height: 25px;
+  width: 70%;
+  color: black;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+#fileInput {
+  display: none;
 }

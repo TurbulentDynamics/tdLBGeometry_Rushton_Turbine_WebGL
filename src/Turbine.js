@@ -2,18 +2,21 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 const THREE = require('three');
-var TrackballControls = require('three-trackballcontrols');
+// var TrackballControls = require('three-trackballcontrols');
+var OrbitControls = require("three-orbit-controls")(THREE);
 var _ = require('lodash');
+var metalColor = 0xFFFFFF;
+var greyColor = 0xEEEEEE;
 
 class Turbine extends Component {
   colors = {
     normal: {
-      tank: 0xcccccc,
-      shaft: 0xdddddd,
-      disk: 0xdddddd,
-      hub: 0xdddddd,
-      blade: 0xdddddd,
-      baffle: 0xdddddd
+      tank: greyColor,
+      shaft: metalColor,
+      disk: metalColor,
+      hub: metalColor,
+      blade: metalColor,
+      baffle: metalColor
     },
     hover: {
       tank: 0x0000ff,
@@ -25,35 +28,52 @@ class Turbine extends Component {
     }
   }
 
+  componentDidUpdate(props) {
+    switch (props.setting) {
+      case "reset":
+        this.resetViewer();
+        break;
+      default:
+        break;
+    };
+  }
+
   componentDidMount() {
     this.glRenderer = new THREE.WebGLRenderer({
       canvas: this.refs.painter,
       alpha: true,
       antialias: true
     });
+    this.glRenderer.shadowMap.enabled = true;
+
+    this.glRenderer.clippingPlanes = Object.freeze( [] ); // GUI sets it to globalPlanes
+    this.glRenderer.localClippingEnabled = true;
     this.glRenderer.animate(() => this.onAnimate());
+
+    this.hoverArr = [ "disk", "hub", "shaft", "blade", "baffle"];//"tank",
 
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
-    this.camera.position.set(0, 0, this.props.tankDiameter * 3);
+    this.camera.position.set(this.props.tankDiameter /2,
+                            this.props.tankHeight,
+                            this.props.tankDiameter * 3);
     this.scene.add(this.camera);
 
     this.light = new THREE.PointLight(0xffffff, 0.3);
     this.light.position.set(0, 0, this.props.tankDiameter * 3);
     this.scene.add(this.light);
 
-    this.controls = new TrackballControls(this.camera, this.refs.painter);
+    this.createShadowLight([0, 0, 1]);
+    this.createShadowLight([0, 1, 0]);
+    this.createShadowLight([1, 0, 0]);
+
+    // this.controls = new TrackballControls(this.camera, this.refs.painter);
+    this.controls = new OrbitControls(this.camera);
 
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
     this.controls.panSpeed = 0.8;
-
-    this.controls.noZoom = false;
-    this.controls.noPan = false;
-
-    this.controls.staticMoving = true;
-    this.controls.dynamicDampingFactor = 0.3;
 
     this.controls.keys = [ 65, 83, 68 ];
 
@@ -62,80 +82,58 @@ class Turbine extends Component {
     });
     this.startAutoRotation();
 
+    this.offsetX = this.refs.painter.offsetLeft;
+    this.offsetY = this.refs.painter.offsetTop;
+
     this.raycaster = new THREE.Raycaster();
     this.normalVector = new THREE.Vector2();
     window.addEventListener('mousemove', event => {
       // calculate mouse position in normalized device coordinates
       // (-1 to +1) for both components
-      this.normalVector.x = ((event.clientX - 320) / this.props.width) * 2 - 1;
-      this.normalVector.y = -((event.clientY - 64) / this.props.height) * 2 + 1;
-
+      this.normalVector.x = ((event.clientX - this.offsetX) / this.props.width) * 2 - 1;
+      this.normalVector.y = -((event.clientY - this.offsetY) / this.props.height) * 2 + 1;
+  
       // update the picking ray with the camera and mouse position
       this.raycaster.setFromCamera(this.normalVector, this.camera);
 
       // calculate objects intersecting the picking ray
       var intersects = this.raycaster.intersectObjects(this.scene.children, true);
-      intersects = this.excludeTankFromIntersects(intersects);
-      if (this.checkFirstObject(this.tank, intersects)) {
-        this.tank.material.color.set(this.colors.hover.tank);
-        this.props.onHoverObject('tank');
-      } else {
-        this.tank.material.color.set(this.colors.normal.tank);
+      this.colorFormat();
+      if (intersects && intersects.length) {
+        intersects.forEach(item => {
+          if (this.hoverArr.indexOf(item.object.name) !== -1) {
+            item.object.material.color.setHex(0x00FF00);
+            this.props.onHoverObject(item.object.name);
+          }
+        });
       }
-      if (this.checkFirstObject(this.shaft, intersects)) {
-        this.shaft.material.color.set(this.colors.hover.shaft);
-        this.props.onHoverObject('shaft');
-      } else {
-        this.shaft.material.color.set(this.colors.normal.shaft);
-      }
-      if (this.checkFirstObject(this.disk, intersects)) {
-        this.disk.material.color.set(this.colors.hover.disk);
-        this.props.onHoverObject('disk');
-      } else {
-        this.disk.material.color.set(this.colors.normal.disk);
-      }
-      if (this.checkFirstObject(this.hub, intersects)) {
-        this.hub.material.color.set(this.colors.hover.hub);
-        this.props.onHoverObject('hub');
-      } else {
-        this.hub.material.color.set(this.colors.normal.hub);
-      }
-      if (this.checkFirstObject(this.hub, intersects)) {
-        this.hub.material.color.set(this.colors.hover.hub);
-        this.props.onHoverObject('hub');
-      } else {
-        this.hub.material.color.set(this.colors.normal.hub);
-      }
-      this.blades.forEach((blade, index) => {
-        if (this.checkFirstObject(blade, intersects)) {
-          this.blades[index].material.color.set(this.colors.hover.blade);
-          this.props.onHoverObject('blade');
-        } else {
-          this.blades[index].material.color.set(this.colors.normal.blade);
-        }
-      });
-      this.baffles.forEach((baffle, index) => {
-        if (this.checkFirstObject(baffle, intersects)) {
-          this.baffles[index].material.color.set(this.colors.hover.baffle);
-          this.props.onHoverObject('baffle');
-        } else {
-          this.baffles[index].material.color.set(this.colors.normal.baffle);
-        }
-      });
     });
 
+    this.transEnableXY = false;
+    this.transEnableYZ = false;
+    this.transEnableXZ = false;
+
     this.createAxis(this.props.tankDiameter, this.props.tankHeight);
-    this.createPlane();
 
     this.createTank();
     this.createShaft();
-    this.createDisk();
-    this.createHub();
 
     this.blades = [];
-    this.changeBladeCount(this.props.bladeCount, 0);
+    this.hubs = [];
+    this.disks = [];
+    var impellerCount = this.props.impellerCount;
+    for (let i = 0; i < impellerCount; i++) {
+      this.blades[i] = [];
+      this.createHub(i, impellerCount);
+      this.createDisk(i, impellerCount);
+      this.changeBladeCount(this.props.bladeCount[i], 0, i);
+    }
+
     this.baffles = [];
     this.changeBaffleCount(this.props.baffleCount, 0);
+
+    this.createPlane();
+    this.createTransPan(this.props.tankDiameter, this.props.tankHeight);
 
     this.kernelAngle = 0;
   }
@@ -154,13 +152,7 @@ class Turbine extends Component {
     }
 
     if (nextProps.tankDiameter !== this.props.tankDiameter || nextProps.tankHeight !== this.props.tankHeight) {
-      this.scene.remove(this.axis);
-      this.scene.remove(this.xArrow);
-      this.scene.remove(this.xLabel);
-      this.scene.remove(this.yArrow);
-      this.scene.remove(this.yLabel);
-      this.scene.remove(this.zArrow);
-      this.scene.remove(this.zLabel);
+      this.scene.remove(this.axisGroup);
       this.createAxis(nextProps.tankDiameter, nextProps.tankHeight);
     }
 
@@ -170,25 +162,68 @@ class Turbine extends Component {
       this.stopAutoRotation();
     }
 
-    if (nextProps.bladeCount !== this.props.bladeCount) {
-      this.changeBladeCount(nextProps.bladeCount, this.props.bladeCount);
+    if (nextProps.impellerCount !== this.props.impellerCount) {
+      this.changeImpellerCount(nextProps.impellerCount, this.props.impellerCount);
     }
-    if (nextProps.bladeInnerRadius !== this.props.bladeInnerRadius || nextProps.bladeOuterRadius !== this.props.bladeOuterRadius || nextProps.bladeWidth !== this.props.bladeWidth || nextProps.bladeHeight !== this.props.bladeHeight) {
-      this.changeBladeGeometry(nextProps.bladeInnerRadius, nextProps.bladeOuterRadius, nextProps.bladeWidth, nextProps.bladeHeight);
+    else {
+      for (let i = 0; i < this.props.impellerCount; i++) {
+        if (nextProps.bladeCount[i] !== this.props.bladeCount[i]) {
+          this.changeBladeCount(nextProps.bladeCount[i], this.props.bladeCount[i], i);
+        }
+        if (nextProps.bladeInnerRadius[i] !== this.props.bladeInnerRadius[i] ||
+          nextProps.bladeOuterRadius[i] !== this.props.bladeOuterRadius[i] ||
+          nextProps.bladeWidth[i] !== this.props.bladeWidth[i] ||
+          nextProps.bladeHeight[i] !== this.props.bladeHeight[i]) {
+          this.changeBladeGeometry(nextProps.bladeInnerRadius[i], nextProps.bladeOuterRadius[i], nextProps.bladeWidth[i], nextProps.bladeHeight[i], i);
+        }
+        if (nextProps.hubRadius[i] !== this.props.hubRadius[i] ||
+            nextProps.hubHeight[i] !== this.props.hubHeight[i]) {
+          this.updateHub(nextProps.hubRadius[i], nextProps.hubHeight[i], i);
+        }
+        if (nextProps.diskRadius[i] !== this.props.diskRadius[i] ||
+            nextProps.diskHeight[i] !== this.props.diskHeight[i]) {
+          this.updateDisk(nextProps.diskRadius[i], nextProps.diskHeight[i], i);
+        }
+      }
     }
+
     if (nextProps.baffleCount !== this.props.baffleCount) {
       this.changeBaffleCount(nextProps.baffleCount, this.props.baffleCount);
     }
+
+    if (nextProps.transPanXY !== this.props.transPanXY)
+      this.changeTransPan("XY", nextProps.transPanXY);
+    else if (nextProps.transPanYZ !== this.props.transPanYZ)
+      this.changeTransPan("YZ", nextProps.transPanYZ);
+    else if (nextProps.transPanXZ !== this.props.transPanXZ)
+      this.changeTransPan("XZ", nextProps.transPanXZ);
+
+    if (nextProps.transEnableXY !== this.props.transEnableXY)
+      this.changeTransEnable("XY", nextProps.transEnableXY);
+    else if (nextProps.transEnableYZ !== this.props.transEnableYZ)
+      this.changeTransEnable("YZ", nextProps.transEnableYZ);
+    else if (nextProps.transEnableXZ !== this.props.transEnableXZ)
+      this.changeTransEnable("XZ", nextProps.transEnableXZ);
 
     if (!_.isEqual(nextProps, this.props)) {
       this.updatePlane(nextProps);
       this.updateTank(nextProps);
       this.updateShaft(nextProps);
-      this.updateDisk(nextProps);
-      this.updateHub(nextProps);
-      this.updateBlades(nextProps);
+
+      // this.updateDisk(nextProps.diskRadius, nextProps.diskHeight);
+      // this.updateHub(nextProps.hubRadius, nextProps.hubHeight);
+      // this.updateBlades(this.props.bladeInnerRadius, this.props.bladeOuterRadius);
+
       this.updateBaffles(nextProps);
     }
+  }
+
+  colorFormat() {
+    this.scene.children.forEach(mesh => {
+      if (mesh && mesh.material && mesh.originalColor) {
+        mesh.material.color.setHex(mesh.originalColor);
+      }
+    });
   }
 
   startAutoRotation() {
@@ -196,11 +231,16 @@ class Turbine extends Component {
       switch (this.props.kernelRotationDir) {
         case 'clockwise':
           this.kernelAngle = (this.kernelAngle + 4) % 360;
-          this.updateBlades(this.props);
+          for (let i = 0; i < this.props.impellerCount; i++) {
+            this.updateBlades(this.props.bladeInnerRadius[i], this.props.bladeOuterRadius[i], i);
+          }
+          
           break;
         case 'counter-clockwise':
           this.kernelAngle = (this.kernelAngle - 4) % 360;
-          this.updateBlades(this.props);
+          for (let i = 0; i < this.props.impellerCount; i++) {
+            this.updateBlades(this.props.bladeInnerRadius[i], this.props.bladeOuterRadius[i], i);
+          }
           break;
         default:
           break;
@@ -228,76 +268,69 @@ class Turbine extends Component {
     //   )
     // });
     this.controls.update();
-
     this.glRenderer.render(this.scene, this.camera);
   }
 
+  createShadowLight(dirArr) {
+    var dis = 3000;
+    var dirLight = new THREE.DirectionalLight( 0x55505a, 1 );
+    dirLight.position.set( dis* dirArr[0], dis* dirArr[1], dis* dirArr[2] );
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 9000;
+
+    dirLight.shadow.camera.right = 1;
+    dirLight.shadow.camera.left = - 1;
+    dirLight.shadow.camera.top	= 1;
+    dirLight.shadow.camera.bottom = - 1;
+
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    this.scene.add( dirLight );
+  }
+
+  createAxisLine(str, dir, color, font, self) {
+    var dir3D = new THREE.Vector3(dir[0], dir[1], dir[2]);
+    var originalPos = new THREE.Vector3(0, 0, 0);
+    var arrow = new THREE.ArrowHelper(dir3D, originalPos, self.axisSize, color, 20, 10);
+    arrow.name = str;
+    self.axisGroup.add(arrow);
+
+    var geoOption = {
+      font: font,
+      size: 15,
+      height: 2,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 1,
+      bevelSize: 1,
+      bevelSegments: 5
+    };
+    var labelGeo = new THREE.TextGeometry(str, geoOption);
+    var labelMat = new THREE.MeshStandardMaterial({color:color});
+    var labelMesh = new THREE.Mesh(labelGeo, labelMat);
+    labelMesh.position.set(dir[0] * (self.axisSize + 10),
+                           dir[1] * (self.axisSize + 10),
+                           dir[2] * (self.axisSize + 10) );
+    self.axisGroup.add(labelMesh);
+  }
+
   createAxis(tankDiameter, tankHeight) {
-    this.axis = new THREE.AxisHelper(Math.max(tankDiameter, tankHeight));
-    var offset = new THREE.Vector3(-(tankDiameter / 2), tankHeight / 2, tankDiameter / 2);
-    // Don't change the coordinate system and display the axis reversely
-    var positionEndAxes = this.axis.geometry.attributes.position;
-    this.axis.geometry.attributes.position.setY(3, -positionEndAxes.getY(3));
-    this.axis.geometry.attributes.position.setZ(5, -positionEndAxes.getZ(5));
-    // Don't change the coordinate system and move the axis
-    this.axis.position.add(offset);
-    this.scene.add(this.axis);
+    this.axisGroup = new THREE.Group();
+    this.scene.add(this.axisGroup);
 
-    var loader = new THREE.FontLoader();
-    loader.load('fonts/helvetiker_regular.typeface.json', font => {
-      var geoOption = {
-        font: font,
-        size: 10,
-        height: 2,
-        curveSegments: 12,
-        bevelEnabled: true,
-        bevelThickness: 2,
-        bevelSize: 2,
-        bevelSegments: 5
-      };
+    this.axisSize = Math.max(tankDiameter, tankHeight);
 
-      // Position of axes extremities
-      var xGeometry = new THREE.TextGeometry('X', geoOption);
-      var xMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xff0000)
-      });
-      this.xLabel = new THREE.Mesh(xGeometry, xMaterial);
-      var xPos = new THREE.Vector3(positionEndAxes.getX(1), positionEndAxes.getY(1), positionEndAxes.getZ(1));
-      xPos.add(offset);
-      this.xLabel.position.copy(xPos).add(new THREE.Vector3(0, 10, 0));
-      this.scene.add(this.xLabel);
-      this.xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 20, 0xff0000, 10, 5);
-      this.xArrow.position.copy(xPos);
-      this.scene.add(this.xArrow);
-
-      var yGeometry = new THREE.TextGeometry('Y', geoOption);
-      var yMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0x00ff00)
-      });
-      this.yLabel = new THREE.Mesh(yGeometry, yMaterial);
-      var yPos = new THREE.Vector3(positionEndAxes.getX(3), positionEndAxes.getY(3), positionEndAxes.getZ(3));
-      yPos.add(offset);
-      this.yLabel.position.copy(yPos).add(new THREE.Vector3(0, -10, 10));
-      this.yLabel.rotation.set(-Math.PI, Math.PI / 2, 0);
-      this.scene.add(this.yLabel);
-      this.yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 0), 20, 0x00ff00, 10, 5);
-      this.yArrow.position.copy(yPos);
-      this.scene.add(this.yArrow);
-
-      var zGeometry = new THREE.TextGeometry('Z', geoOption);
-      var zMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0x0000ff)
-      });
-      this.zLabel = new THREE.Mesh(zGeometry, zMaterial);
-      var zPos = new THREE.Vector3(positionEndAxes.getX(5), positionEndAxes.getY(5), positionEndAxes.getZ(5));
-      zPos.add(offset);
-      this.zLabel.position.copy(zPos).add(new THREE.Vector3(0, -10, 0));
-      this.zLabel.rotation.set(-Math.PI, -(Math.PI / 2), 0);
-      this.scene.add(this.zLabel);
-      this.zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), 20, 0x0000ff, 10, 5);
-      this.zArrow.position.copy(zPos);
-      this.scene.add(this.zArrow);
+    var self = this;
+    var fontLoader = new THREE.FontLoader();
+    fontLoader.load('fonts/helvetiker_regular.typeface.json', font => {
+      self.createAxisLine("X", [1, 0, 0], 0xFF0000, font, self);
+      self.createAxisLine("Y", [0, -1, 0], 0x00FF00, font, self);
+      self.createAxisLine("Z", [0, 0, -1], 0x0000FF, font, self);
     });
+
+    this.axisGroup.position.set(tankDiameter/-2, tankHeight/2, tankDiameter/2);
+
   }
 
   createPlane() {
@@ -317,12 +350,16 @@ class Turbine extends Component {
   createTank() {
     var geometry = this.createTankGeometry(this.props);
     var material = new THREE.MeshLambertMaterial({
-      color: 0xcccccc,
-      opacity: 0.2,
+      color: greyColor,
+      opacity: 0.3,
       transparent: true,
-      side: THREE.DoubleSide
+      side: THREE.BackSide
+      // clippingPlanes: [],
+      // clipShadows: true
     });
     this.tank = new THREE.Mesh(geometry, material);
+    this.tank.name = "tank";
+    this.tank.originalColor = greyColor;
     this.scene.add(this.tank);
   }
 
@@ -338,9 +375,14 @@ class Turbine extends Component {
   createShaft() {
     var geometry = this.createShaftGeometry(this.props);
     var material = new THREE.MeshPhongMaterial({
-      color: 0xdddddd
+      color: metalColor,
+      side: THREE.DoubleSide,
+      clippingPlanes: [],
+      clipShadows: true
     });
     this.shaft = new THREE.Mesh(geometry, material);
+    this.shaft.name = "shaft";
+    this.shaft.originalColor = metalColor;
     this.scene.add(this.shaft);
   }
 
@@ -349,83 +391,144 @@ class Turbine extends Component {
     this.shaft.geometry = this.createShaftGeometry(props);
   }
 
-  createDiskGeometry({ diskRadius, diskHeight }) {
+  createDiskGeometry(diskRadius, diskHeight ) {
     return new THREE.CylinderGeometry(diskRadius, diskRadius, diskHeight, 30);
   }
 
-  createDisk() {
-    var geometry = this.createDiskGeometry(this.props);
+  createDisk(num, count) {
+    if (!this.props.diskRadius[num] || this.props.diskHeight[num]) {
+      this.props.diskRadius[num] = this.props.diskRadius[0];
+      this.props.diskHeight[num] = this.props.diskHeight[0];
+    }
+    var radius = this.props.diskRadius[num], height = this.props.diskHeight[num];
+    var geometry = this.createDiskGeometry(radius, height);
     var material = new THREE.MeshPhongMaterial({
-      color: 0xdddddd
+      color: metalColor,
+      side: THREE.DoubleSide,
+      // clippingPlanes: [],
+      // clipShadows: true
     });
-    this.disk = new THREE.Mesh(geometry, material);
-    this.disk.position.set(0, -(this.props.tankHeight / 6), 0);
-    this.scene.add(this.disk);
+    var diskMesh = new THREE.Mesh(geometry, material);
+    diskMesh.position.y = this.setImpellerPositionY(num, count);
+    diskMesh.name = "disk" + num;
+    diskMesh.originalColor = metalColor;
+    this.disks.push(diskMesh);
+    this.scene.add(diskMesh);
   }
 
-  updateDisk(props) {
-    delete this.disk.geometry;
-    this.disk.geometry = this.createDiskGeometry(props);
-    this.disk.position.set(0, -(props.tankHeight / 6), 0);
+  updateDisk(radius, height, num) {
+    var diskGeo = this.createDiskGeometry(radius, height);
+    delete this.disks[num].geometry;
+    this.disks[num].geometry = diskGeo;
   }
 
-  createHubGeometry({ hubRadius, hubHeight }) {
+  createHubGeometry(hubRadius, hubHeight) {
     return new THREE.CylinderGeometry(hubRadius, hubRadius, hubHeight, 30);
   }
 
-  createHub() {
-    var geometry = this.createHubGeometry(this.props);
+  createHub(num, count) {
+    if (!this.props.hubRadius[num] || this.props.hubHeight[num]) {
+      this.props.hubRadius[num] = this.props.hubRadius[0];
+      this.props.hubHeight[num] = this.props.hubHeight[0];
+    }
+    var radius = this.props.hubRadius[num], height = this.props.hubHeight[num];
+    var geometry = this.createHubGeometry(radius, height);
     var material = new THREE.MeshPhongMaterial({
-      color: 0xdddddd
+      color: metalColor,
+      side: THREE.DoubleSide,
+      // clippingPlanes: [],
+      // clipShadows: true
     });
-    this.hub = new THREE.Mesh(geometry, material);
-    this.hub.position.set(0, -(this.props.tankHeight / 6), 0);
-    this.scene.add(this.hub);
+    var hubMesh = new THREE.Mesh(geometry, material);
+    hubMesh.position.y = this.setImpellerPositionY(num, count);
+    hubMesh.name = "hub" + num;
+    hubMesh.originalColor = metalColor;
+    this.hubs.push(hubMesh);
+    this.scene.add(hubMesh);
   }
 
-  updateHub(props) {
-    delete this.hub.geometry;
-    this.hub.geometry = this.createHubGeometry(props);
-    this.hub.position.set(0, -(props.tankHeight / 6), 0);
+  updateHub(radius, height, num) {
+    var hubGeo = this.createHubGeometry(radius, height);
+    delete this.hubs[num].geometry;
+    this.hubs[num].geometry = hubGeo;
   }
 
-  changeBladeCount(newValue: number, oldValue: number) {
+  setImpellerPositionY(num, count) {
+    var tankHeight = this.props.tankHeight;
+    return tankHeight/-2 + tankHeight/(count + 1) * (num + 1);
+  }
+
+  createTransPan(d, h) {
+    var thickness = 2;
+    this.transPanMeshXY = this.createTranslucentPan([d * 1.1, h * 1.1, thickness]);
+    this.transPanMeshYZ = this.createTranslucentPan([thickness, h * 1.1, d * 1.1]);
+    this.transPanMeshXZ = this.createTranslucentPan([d * 1.1, thickness, d * 1.1]);
+    this.scene.add(this.transPanMeshXY);
+    this.scene.add(this.transPanMeshYZ);
+    this.scene.add(this.transPanMeshXZ);
+  }
+
+  createTranslucentPan(sizeArr) {
+    var panGeo = new THREE.BoxGeometry(sizeArr[0], sizeArr[1], sizeArr[2]);
+    var panMat = new THREE.MeshPhongMaterial({
+          color : 0x0000FF,
+          side: THREE.DoubleSide,
+          transparent : true,
+          opacity : 0.8
+        });
+    var panMesh = new THREE.Mesh(panGeo, panMat);
+    panMesh.name = "transPan";
+    panMesh.visible = false;
+    return panMesh;
+  }
+
+  changeBladeCount(newValue, oldValue, num) {
     var i;
     if (newValue < oldValue) {
       for (i = oldValue - 1; i >= newValue; i--) {
-        this.scene.remove(this.blades[i]);
-        this.blades.pop();
-        delete this.blades[i];
+        this.scene.remove(this.blades[num][i]);
+        this.blades[num].pop();
+        delete this.blades[num][i];
       }
     } else if (newValue > oldValue) {
       for (i = oldValue; i < newValue; i++) {
-        var blade = new THREE.BoxGeometry(this.props.bladeWidth, this.props.bladeHeight, this.props.bladeOuterRadius - this.props.bladeInnerRadius);
-        var material = new THREE.MeshPhongMaterial({ color: 0xeeeeee });
+        var blade = new THREE.BoxGeometry(this.props.bladeWidth[num],
+                                          this.props.bladeHeight[num],
+                                          this.props.bladeOuterRadius[num] - this.props.bladeInnerRadius[num]);
+        var material = new THREE.MeshPhongMaterial({
+                color: greyColor,
+                side: THREE.DoubleSide,
+                // clippingPlanes: [],
+                // clipShadows: true
+              });
         var mesh = new THREE.Mesh(blade, material);
-        this.blades.push(mesh);
+        this.blades[num].push(mesh);
+        mesh.name = "blade"+num;
+        mesh.originalColor = greyColor;
         this.scene.add(mesh);
       }
     }
   }
 
-  changeBladeGeometry(innerRadius: number, outerRadius: number, width: number, height: number) {
-    for (var i = 0; i < this.blades.length; i++) {
-      delete this.blades[i].geometry;
-      this.blades[i].geometry = new THREE.BoxGeometry(width, height, outerRadius - innerRadius);
+  changeBladeGeometry(innerRadius, outerRadius, width, height, num) {
+    for (var i = 0; i < this.blades[num].length; i++) {
+      delete this.blades[num][i].geometry;
+      this.blades[num][i].geometry = new THREE.BoxGeometry(width, height, outerRadius - innerRadius);
     }
   }
 
-  updateBlades({ bladeInnerRadius, bladeOuterRadius, tankHeight }) {
-    var distance = (bladeInnerRadius + bladeOuterRadius) / 2;
+  updateBlades(innerRadius, outerRadius, num) {
+    var distance = (innerRadius + outerRadius) / 2;
     var yAxis = new THREE.Vector3(0, 1, 0);
-    var offset = new THREE.Vector3(0, -(tankHeight / 6), 0);
-    for (var i = 0; i < this.blades.length; i++) {
-      var angle = (360 * i / this.blades.length + this.kernelAngle) % 360;
+    var offset, count = this.props.impellerCount;
+    offset = new THREE.Vector3(0, this.setImpellerPositionY(num, count), 0);
+    for (var j = 0; j < this.blades[num].length; j++) {
+      var angle = (360 * j / this.blades[num].length + this.kernelAngle) % 360;
       angle = 2 * Math.PI * angle / 360;
-      this.blades[i].position.set(0, 0, distance);
-      this.blades[i].position.applyAxisAngle(yAxis, angle);
-      this.blades[i].position.add(offset);
-      this.blades[i].rotation.set(0, angle, 0);
+      this.blades[num][j].position.set(0, 0, distance);
+      this.blades[num][j].position.applyAxisAngle(yAxis, angle);
+      this.blades[num][j].position.add(offset);
+      this.blades[num][j].rotation.set(0, angle, 0);
     }
   }
 
@@ -433,7 +536,58 @@ class Turbine extends Component {
     return new THREE.BoxGeometry(baffleWidth, tankHeight, baffleOuterRadius - baffleInnerRadius);
   }
 
-  changeBaffleCount(newValue: number, oldValue: number) {
+  changeImpellerCount(newValue, oldValue) {
+    var posY, i;
+    if (newValue < oldValue) {
+      for (i = oldValue - 1; i >= 0; i--) {
+        if (i < newValue) {
+          posY = this.setImpellerPositionY(i, newValue);
+          this.hubs[i].position.y = posY;
+          this.disks[i].position.y = posY;
+        }
+        else {
+          this.scene.remove(this.hubs[i]);
+          this.hubs.pop();
+          this.scene.remove(this.disks[i]);
+          this.disks.pop();
+          for (var j = this.props.bladeCount[i] - 1; j >= 0; j--) {
+            this.scene.remove(this.blades[i][j]);
+            // this.blades[i].pop();
+            // delete this.blades[i][j];
+          }
+          this.blades.pop();
+          // delete this.hubs[i];
+          // delete this.disks[i];
+          // delete this.blades[i];
+        }
+      }
+    } else if (newValue > oldValue) {
+      for (i = 0; i < newValue; i++) {
+        posY = this.setImpellerPositionY(i, newValue);
+        if (i < oldValue) {
+          this.hubs[i].position.y = posY;
+          this.disks[i].position.y = posY;
+          for (let j = 0; j < this.props.bladeCount; j++) {
+            this.blades[i][j].position.y = posY;
+          }
+        }
+        else {
+          this.createHub(i, newValue);
+          this.createDisk(i, newValue);
+          this.blades[i] = [];
+          this.props.bladeCount[i] = this.props.bladeCount[0];
+          this.props.bladeWidth[i] = this.props.bladeWidth[0];
+          this.props.bladeHeight[i] = this.props.bladeHeight[0];
+          this.props.bladeOuterRadius[i] = this.props.bladeOuterRadius[0];
+          this.props.bladeInnerRadius[i] = this.props.bladeInnerRadius[0];
+          this.changeBladeCount(this.props.bladeCount[i], 0, i);
+        }
+      }
+    }
+
+  }
+
+  changeBaffleCount(newValue, oldValue) {
     var i;
     if (newValue < oldValue) {
       for (i = oldValue - 1; i >= newValue; i--) {
@@ -444,12 +598,43 @@ class Turbine extends Component {
     } else if (newValue > oldValue) {
       for (i = oldValue; i < newValue; i++) {
         var baffle = this.createBaffleGeometry(this.props);
-        var material = new THREE.MeshPhongMaterial({ color: 0xeeeeee });
+        var material = new THREE.MeshPhongMaterial({
+                    color: greyColor,
+                    side: THREE.DoubleSide,
+                    // clippingPlanes: [],
+                    // clipShadows: true
+                  });
         var mesh = new THREE.Mesh(baffle, material);
         this.baffles.push(mesh);
+        mesh.name = "baffle";
+        mesh.originalColor = greyColor;
         this.scene.add(mesh);
       }
     }
+  }
+
+  changeTransPan(type, value) {
+    if (type === "XY") {
+      this.transPanMeshXY.position.z = value;
+    } 
+    else if (type === "YZ") {
+      this.transPanMeshYZ.position.x = value;
+    } 
+    else if (type === "XZ") {
+      this.transPanMeshXZ.position.y = value;
+    }
+  }
+
+  changeTransEnable (type, value) {
+    if (type === "XY") 
+      this.transEnableXY = value;
+    else if (type === "YZ")
+      this.transEnableYZ = value;
+    else if (type === "XZ")
+      this.transEnableXZ = value;
+    this.transPanMeshXY.visible = this.transEnableXY;
+    this.transPanMeshYZ.visible = this.transEnableYZ;
+    this.transPanMeshXZ.visible = this.transEnableXZ;
   }
 
   updateBaffles(props) {
@@ -466,28 +651,17 @@ class Turbine extends Component {
     }
   }
 
-  excludeTankFromIntersects(intersects: Array) {
-    var onlyTank = true;
-    intersects.forEach(intersect => {
-      if (intersect.object.uuid !== this.tank.uuid) {
-        onlyTank = false;
-        return false;
-      }
-    }, this);
-    if (onlyTank) {
-      return intersects;
-    }
-    return intersects.filter((intersect, index) => {
-      return intersect.object.uuid !== this.tank.uuid;
-    }, this);
-  }
-
-  checkFirstObject(needle: THREE.Object3D, haystack: Array) {
+  checkFirstObject(needle, haystack) {
     if (haystack.length > 0) {
       return needle.uuid === haystack[0].object.uuid;
     } else {
       return false;
     }
+  }
+
+  resetViewer() {
+    this.camera.position.set(this.props.tankDiameter /2, this.props.tankHeight, this.props.tankDiameter * 3);
+    this.controls.target.set(0, 0, 0);
   }
 
   render() {
@@ -505,18 +679,27 @@ Turbine.propTypes = {
   shaftRadius: PropTypes.number.isRequired,
   kernelAutoRotation: PropTypes.bool,
   kernelRotationDir: PropTypes.string,
-  diskRadius: PropTypes.number.isRequired,
-  diskHeight: PropTypes.number.isRequired,
-  hubRadius: PropTypes.number.isRequired,
-  hubHeight: PropTypes.number.isRequired,
-  bladeCount: PropTypes.number.isRequired,
-  bladeInnerRadius: PropTypes.number.isRequired,
-  bladeOuterRadius: PropTypes.number.isRequired,
-  bladeWidth: PropTypes.number.isRequired,
-  bladeHeight: PropTypes.number.isRequired,
   baffleCount: PropTypes.number.isRequired,
   baffleInnerRadius: PropTypes.number.isRequired,
   baffleOuterRadius: PropTypes.number.isRequired,
+
+  impellerCount : PropTypes.number.isRequired,
+  hubRadius: PropTypes.array.isRequired,
+  hubHeight: PropTypes.array.isRequired,
+  diskRadius: PropTypes.array.isRequired,
+  diskHeight: PropTypes.array.isRequired,
+  bladeCount: PropTypes.array.isRequired,
+  bladeInnerRadius: PropTypes.array.isRequired,
+  bladeOuterRadius: PropTypes.array.isRequired,
+  bladeWidth: PropTypes.array.isRequired,
+  bladeHeight: PropTypes.array.isRequired,
+
+  transPanXY: PropTypes.number.isRequired,
+  transPanYZ: PropTypes.number.isRequired,
+  transPanXZ: PropTypes.number.isRequired,
+  transEnableXY: PropTypes.bool,
+  transEnableYZ: PropTypes.bool,
+  transEnableXZ: PropTypes.bool,
   baffleWidth: PropTypes.number.isRequired,
   onHoverObject: PropTypes.func
 };
