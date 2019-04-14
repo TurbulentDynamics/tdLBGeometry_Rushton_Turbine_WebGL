@@ -71,6 +71,10 @@ class Turbine extends Component {
     // this.controls = new TrackballControls(this.camera, this.refs.painter);
     this.controls = new OrbitControls(this.camera);
 
+    this.controls.noZoom = true;
+    //this.controls.noRotate = true;
+    //this.controls.noKeys  = true;
+    //this.controls.noPan  = true;
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
     this.controls.panSpeed = 0.8;
@@ -112,6 +116,7 @@ class Turbine extends Component {
     this.transEnableXY = false;
     this.transEnableYZ = false;
     this.transEnableXZ = false;
+    //this.transEnableImpeller = false;
 
     this.createAxis(this.props.tankDiameter, this.props.tankHeight);
 
@@ -121,6 +126,7 @@ class Turbine extends Component {
     this.blades = [];
     this.hubs = [];
     this.disks = [];
+    //this.diskTrans = [];
     var impellerCount = this.props.impellerCount;
     for (let i = 0; i < impellerCount; i++) {
       this.blades[i] = [];
@@ -197,6 +203,8 @@ class Turbine extends Component {
       this.changeTransPan("YZ", nextProps.transPanYZ);
     else if (nextProps.transPanXZ !== this.props.transPanXZ)
       this.changeTransPan("XZ", nextProps.transPanXZ);
+    else if (nextProps.transRotateAngle !== this.props.transRotateAngle)
+      this.changeTransPan("Angle", nextProps.transRotateAngle);
 
     if (nextProps.transEnableXY !== this.props.transEnableXY)
       this.changeTransEnable("XY", nextProps.transEnableXY);
@@ -204,11 +212,18 @@ class Turbine extends Component {
       this.changeTransEnable("YZ", nextProps.transEnableYZ);
     else if (nextProps.transEnableXZ !== this.props.transEnableXZ)
       this.changeTransEnable("XZ", nextProps.transEnableXZ);
+    // else if (nextProps.transEnableImpeller !== this.props.transEnableImpeller)
+    //   this.changeTransEnable("Impeller", nextProps.transEnableImpeller);
+    else if (nextProps.transEnableRotate !== this.props.transEnableRotate)
+      this.changeTransEnable("Rotate", nextProps.transEnableRotate);
 
     if (!_.isEqual(nextProps, this.props)) {
+      
       this.updatePlane(nextProps);
       this.updateTank(nextProps);
       this.updateShaft(nextProps);
+
+      this.updateTransPan(this.props.tankDiameter, this.props.tankHeight);
 
       // this.updateDisk(nextProps.diskRadius, nextProps.diskHeight);
       // this.updateHub(nextProps.hubRadius, nextProps.hubHeight);
@@ -412,14 +427,33 @@ class Turbine extends Component {
     diskMesh.position.y = this.setImpellerPositionY(num, count);
     diskMesh.name = "disk" + num;
     diskMesh.originalColor = metalColor;
+
+    // var panGeo = new THREE.BoxGeometry(2 * radius + 50, 2, 2 * radius + 50);
+    // var panMat = new THREE.MeshPhongMaterial({
+    //   color : 0x0000FF,
+    //   side: THREE.DoubleSide,
+    //   transparent : true,
+    //   opacity : 0.8
+    // });
+    // var panMesh = new THREE.Mesh(panGeo, panMat);
+    // panMesh.position.y = this.setImpellerPositionY(num, count);
+    // panMesh.name = "diskPan" + num;
+    // panMesh.visible = this.transEnableImpeller;
+
     this.disks.push(diskMesh);
     this.scene.add(diskMesh);
+    //this.diskTrans.push(panMesh);
+    //this.scene.add(panMesh);
   }
 
   updateDisk(radius, height, num) {
     var diskGeo = this.createDiskGeometry(radius, height);
     delete this.disks[num].geometry;
     this.disks[num].geometry = diskGeo;
+
+    // var panGeo = new THREE.BoxGeometry(2 * radius + 50, 2, 2 * radius + 50);
+    // delete this.diskTrans[num].geometry;
+    // this.diskTrans[num].geometry = panGeo;
   }
 
   createHubGeometry(hubRadius, hubHeight) {
@@ -463,9 +497,21 @@ class Turbine extends Component {
     this.transPanMeshXY = this.createTranslucentPan([d * 1.1, h * 1.1, thickness]);
     this.transPanMeshYZ = this.createTranslucentPan([thickness, h * 1.1, d * 1.1]);
     this.transPanMeshXZ = this.createTranslucentPan([d * 1.1, thickness, d * 1.1]);
+    this.transPanMeshCenter = this.createTranslucentPan([d / 2, h, thickness]);
+
     this.scene.add(this.transPanMeshXY);
     this.scene.add(this.transPanMeshYZ);
     this.scene.add(this.transPanMeshXZ);
+    this.transPanMeshCenter.position.x = d / 4;
+
+    this.scene.add(this.transPanMeshCenter);
+  }
+
+  updateTransPan(d, h) {
+    this.updateTranslucentPan(this.transPanMeshXY, [d * 1.1, h * 1.1, 2]);
+    this.updateTranslucentPan(this.transPanMeshYZ, [2, h * 1.1, d * 1.1]);
+    this.updateTranslucentPan(this.transPanMeshXZ, [d * 1.1, 2, d * 1.1]);
+    this.updateTranslucentPan(this.transPanMeshCenter, [d / 2, h, 2]);
   }
 
   createTranslucentPan(sizeArr) {
@@ -480,6 +526,10 @@ class Turbine extends Component {
     panMesh.name = "transPan";
     panMesh.visible = false;
     return panMesh;
+  }
+
+  updateTranslucentPan(mesh, sizeArr) {
+    mesh.scale.set(sizeArr[0] / mesh.geometry.parameters.width, sizeArr[1] / mesh.geometry.parameters.height, sizeArr[2] / mesh.geometry.parameters.depth);
   }
 
   changeBladeCount(newValue, oldValue, num) {
@@ -529,6 +579,13 @@ class Turbine extends Component {
       this.blades[num][j].position.applyAxisAngle(yAxis, angle);
       this.blades[num][j].position.add(offset);
       this.blades[num][j].rotation.set(0, angle, 0);
+      //this.diskTrans[num].rotation.set(0, angle, 0);
+
+      var angle1 = (360 * j / this.blades[num].length + this.kernelAngle + this.props.transRotateAngle) % 360;
+      angle1 = 2 * Math.PI * angle1 / 360;
+      this.transPanMeshCenter.position.set(this.props.tankDiameter / 4, 0, 0);
+      this.transPanMeshCenter.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle1);
+      this.transPanMeshCenter.rotation.set(0, angle1, 0);
     }
   }
 
@@ -544,12 +601,15 @@ class Turbine extends Component {
           posY = this.setImpellerPositionY(i, newValue);
           this.hubs[i].position.y = posY;
           this.disks[i].position.y = posY;
+          //this.diskTrans[i].position.y = posY;
         }
         else {
           this.scene.remove(this.hubs[i]);
           this.hubs.pop();
           this.scene.remove(this.disks[i]);
           this.disks.pop();
+          //this.scene.remove(this.diskTrans[i]);
+          //this.diskTrans.pop();
           for (var j = this.props.bladeCount[i] - 1; j >= 0; j--) {
             this.scene.remove(this.blades[i][j]);
             // this.blades[i].pop();
@@ -567,6 +627,7 @@ class Turbine extends Component {
         if (i < oldValue) {
           this.hubs[i].position.y = posY;
           this.disks[i].position.y = posY;
+          //this.diskTrans[i].position.y = posY;
           for (let j = 0; j < this.props.bladeCount; j++) {
             this.blades[i][j].position.y = posY;
           }
@@ -623,18 +684,30 @@ class Turbine extends Component {
     else if (type === "XZ") {
       this.transPanMeshXZ.position.y = value;
     }
+    else if (type === "Angle") {
+      this.transRotateAngle = value;
+    }
   }
 
   changeTransEnable (type, value) {
+
     if (type === "XY") 
       this.transEnableXY = value;
     else if (type === "YZ")
       this.transEnableYZ = value;
     else if (type === "XZ")
       this.transEnableXZ = value;
+    // else if (type === "Impeller")
+    //   this.transEnableImpeller = value;
+    else if (type === "Rotate")
+      this.transEnableRotate = value;
+    
     this.transPanMeshXY.visible = this.transEnableXY;
     this.transPanMeshYZ.visible = this.transEnableYZ;
     this.transPanMeshXZ.visible = this.transEnableXZ;
+    this.transPanMeshCenter.visible = this.transEnableRotate;
+    // for (var i = 0; i < this.diskTrans.length; i++)
+    //   this.diskTrans[i].visible = this.transEnableImpeller;
   }
 
   updateBaffles(props) {
@@ -697,9 +770,12 @@ Turbine.propTypes = {
   transPanXY: PropTypes.number.isRequired,
   transPanYZ: PropTypes.number.isRequired,
   transPanXZ: PropTypes.number.isRequired,
+  transRotateAngle: PropTypes.number.isRequired,
   transEnableXY: PropTypes.bool,
   transEnableYZ: PropTypes.bool,
   transEnableXZ: PropTypes.bool,
+  //transEnableImpeller: PropTypes.bool,
+  transEnableRotate: PropTypes.bool,
   baffleWidth: PropTypes.number.isRequired,
   onHoverObject: PropTypes.func
 };

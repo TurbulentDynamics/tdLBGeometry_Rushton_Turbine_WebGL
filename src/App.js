@@ -40,9 +40,12 @@ export default class App extends Component {
       transPanXY: 0,
       transPanYZ: 0,
       transPanXZ: 0,
+      transRotateAngle: 0,
       transEnableXY: false,
       transEnableYZ: false,
       transEnableXZ: false,
+      transEnableImpeller: false,
+      transEnableRotate: false,
       hoverObject: '',
       setting:''
     };
@@ -62,23 +65,20 @@ export default class App extends Component {
       var bladeWidth = [];
       var bladeHeight = [];
 
-      var keyArr = Object.keys(jsonData);
+      var keyArr = Object.keys(jsonData.impeller);
   
       keyArr.forEach(key => {
-        if (key.indexOf("impeller") > -1) {
-          var idx = parseInt(key.substring(8));
-          hubRadius[idx] = jsonData[key].hub.radius;
-          hubHeight[idx] = jsonData[key].hub.top
-          diskRadius[idx] = jsonData[key].disk.radius;
-          diskHeight[idx] = jsonData[key].disk.top;
-          bladeCount[idx] = jsonData[key].numBlades;
-          bladeInnerRadius[idx] = jsonData[key].blades.innerRadius;
-          bladeOuterRadius[idx] = jsonData[key].blades.outerRadius;
-          bladeWidth[idx] = jsonData[key].blades.bladeThickness;
-          bladeHeight[idx] = jsonData[key].blades.top;
-        }
+        hubRadius[key] = jsonData.impeller[key].hub.radius;
+        hubHeight[key] = jsonData.impeller[key].hub.top
+        diskRadius[key] = jsonData.impeller[key].disk.radius;
+        diskHeight[key] = jsonData.impeller[key].disk.top;
+        bladeCount[key] = jsonData.impeller[key].numBlades;
+        bladeInnerRadius[key] = jsonData.impeller[key].blades.innerRadius;
+        bladeOuterRadius[key] = jsonData.impeller[key].blades.outerRadius;
+        bladeWidth[key] = jsonData.impeller[key].blades.bladeThickness;
+        bladeHeight[key] = jsonData.impeller[key].blades.top;
       });
-      var impeller0 = jsonData.impeller0;
+ 
       var importJsonData = {
         tankDiameter: jsonData.tankDiameter,
         tankHeight: jsonData.gridx,
@@ -99,7 +99,6 @@ export default class App extends Component {
         bladeWidth: bladeWidth,
         bladeHeight: bladeHeight,
       };
-      console.log(importJsonData);
       Object.keys(importJsonData).forEach(key => {
         this.setState({ [key]: importJsonData[key] });
       });
@@ -195,9 +194,11 @@ export default class App extends Component {
       }
     };
 
+    var impeller = {};
     for (let i = 0; i < this.state.impellerCount; i++) {
-      var keyStr = "impeller"+i;
-      exportJsonData[keyStr] = {
+      var keyStr = i;
+
+      impeller[keyStr] = {
         numBlades: this.state.bladeCount[i],
         firstBladeOffset: 0,
         uav: "0.100000001",
@@ -222,6 +223,8 @@ export default class App extends Component {
         }
       }
     }
+
+    exportJsonData["impeller"] = impeller;
 
     jQuery("<a />", {
       "download": "data.json",
@@ -268,9 +271,12 @@ export default class App extends Component {
                 transPanXY={this.state.transPanXY}
                 transPanYZ={this.state.transPanYZ}
                 transPanXZ={this.state.transPanXZ}
+                transRotateAngle={this.state.transRotateAngle}
                 transEnableXY={this.state.transEnableXY}
                 transEnableYZ={this.state.transEnableYZ}
                 transEnableXZ={this.state.transEnableXZ}
+                transEnableImpeller={this.state.transEnableImpeller}
+                transEnableRotate={this.state.transEnableRotate}
                 onHoverObject={name => this.handleHoverObject(name)}
                 setting={this.state.setting}
               />
@@ -278,7 +284,26 @@ export default class App extends Component {
           </Layout>
           <Sider width={320} style={{ overflowY: 'auto' }}>
             <div className="logo"></div>
-            <Menu theme="dark" mode="inline">
+            <Menu theme="dark" mode="inline" defaultOpenKeys={['setting']}>
+              <Menu.SubMenu className="setting subMenu" key="setting" title={
+                <span>
+                  <Icon type={this.state.hoverObject === 'setting' ? 'environment' : 'mail'} />
+                  <span style={{
+                    fontWeight: this.state.hoverObject === 'setting' ? 'bold' : 'normal'
+                  }}>Setting</span>
+                </span>
+              }>
+                <div className="setting-item">
+                  <button onClick={ev => {this.handleSetting("reset")}}>Reset Camera</button>
+                </div>
+                <div><input id="fileInput" ref="fileInput" type="file" onChange={ (e) => this.handleFile(e.target.files[0]) } /></div>
+                <div className="setting-item">
+                  <button onClick={this.handleFileSelect}>Load Json</button>
+                </div>
+                <div className="setting-item">
+                  <button onClick={this.exportJsonFile.bind(this)}>Save Json</button>
+                </div>
+              </Menu.SubMenu>
               <Menu.SubMenu className="subMenu" key="tank" title={
                 <span>
                   <Icon type={this.state.hoverObject === 'tank' ? 'environment' : 'mail'} />
@@ -416,52 +441,36 @@ export default class App extends Component {
                   </Radio.Group>
                 </Menu.Item>
               </Menu.SubMenu>
-
-
-              <Menu.SubMenu className="setting subMenu" key="setting" title={
-                <span>
-                  <Icon type={this.state.hoverObject === 'setting' ? 'environment' : 'mail'} />
-                  <span style={{
-                    fontWeight: this.state.hoverObject === 'setting' ? 'bold' : 'normal'
-                  }}>Setting</span>
-                </span>
-              }>
-                <div className="setting-item">
-                  <button onClick={ev => {this.handleSetting("reset")}}>Reset Camera</button>
-                </div>
-                <div><input id="fileInput" ref="fileInput" type="file" onChange={ (e) => this.handleFile(e.target.files[0]) } /></div>
-                <div className="setting-item">
-                  <button onClick={this.handleFileSelect}>Load Json</button>
-                </div>
-                <div className="setting-item">
-                  <button onClick={this.exportJsonFile.bind(this)}>Save Json</button>
-                </div>
-              </Menu.SubMenu>
               <Menu.SubMenu className="translucent subMenu" key="translucent" title={
                 <span>
                   <Icon type={this.state.hoverObject === 'translucent' ? 'environment' : 'mail'} />
-                  <span style={{fontWeight: this.state.hoverObject === 'translucent' ? 'bold' : 'normal'}}>Translucent</span>
+                  <span style={{fontWeight: this.state.hoverObject === 'translucent' ? 'bold' : 'normal'}}>Output Plane</span>
                 </span>
               }>
                 <Menu.Item className="testClass" key="menuitem15">
-                  <span className="trans-pan">XY Side Enable</span>
+                  <span className="trans-pan">XY Plane</span>
                   <Checkbox className="transCheck" onChange={(value) => this.handleTransEnable('transEnableXY', value)}></Checkbox>
                   <InputNumber size="small" min={this.state.tankDiameter * -0.5} max={this.state.tankDiameter * 0.5} defaultValue={this.state.transPanXY} onChange={(value) => this.handleChange('transPanXY', value)} />
                 </Menu.Item>
                 <Menu.Item key="menuitem16">
-                  <span className="trans-pan">YZ Side Enable</span>
+                  <span className="trans-pan">YZ Plane</span>
                   <Checkbox className="transCheck" onChange={(value) => this.handleTransEnable('transEnableYZ', value)}></Checkbox>
                   <InputNumber size="small" min={this.state.tankDiameter * -0.5} max={this.state.tankDiameter * 0.5} defaultValue={this.state.transPanYZ} onChange={(value) => this.handleChange('transPanYZ', value)} />
                 </Menu.Item>
                 <Menu.Item key="menuitem17">
-                  <span className="trans-pan">XZ Side Enable</span>
+                  <span className="trans-pan">XZ Plane</span>
                   <Checkbox className="transCheck" onChange={(value) => this.handleTransEnable('transEnableXZ', value)}></Checkbox>
                   <InputNumber size="small" min={this.state.tankHeight * -0.5} max={this.state.tankHeight * 0.5} defaultValue={this.state.transPanXZ} onChange={(value) => this.handleChange('transPanXZ', value)} />
                 </Menu.Item>
-                <Menu.SubMenu key="menuitem18" title="test subMenu">
-                  <Menu.Item key="menuitem19">xx</Menu.Item>
-                  <Menu.Item key="menuitem20">yy</Menu.Item>
-                </Menu.SubMenu>
+                <Menu.Item key="menuitem18">
+                  <span className="trans-pan">Rotate Plane</span>
+                  <Checkbox className="transCheck" onChange={(value) => this.handleTransEnable('transEnableRotate', value)}></Checkbox>
+                  <InputNumber size="small" min={0} max={360} defaultValue={this.state.transRotateAngle} onChange={(value) => this.handleChange('transRotateAngle', value)} />
+                </Menu.Item>
+                {/* <Menu.Item key="menuitem19">
+                  <span className="trans-pan">Impeller Plane</span>
+                  <Checkbox className="transCheck" onChange={(value) => this.handleTransEnable('transEnableImpeller', value)}></Checkbox>
+                </Menu.Item> */}
               </Menu.SubMenu>
             </Menu>
           </Sider>
