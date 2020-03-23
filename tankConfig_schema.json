@@ -1,0 +1,271 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/root.json",
+    "type": "object",
+    "title": "The Root",
+    "required": [
+      "name",
+      "tankHeight",
+      "tankDiameter",
+      "baffles",
+      "shaft",
+      "numImpellers",
+      "impellers"
+    ],
+    "properties": {
+      "name": {
+        "$id": "#/properties/name",
+        "type": "string",
+        "title": "The Name",
+        "default": "GeometryConfig"
+      },
+      "gridx": {
+        "$id": "#/properties/gridx",
+        "type": "integer",
+        "title": "Grid x",
+        "default": 104
+      },
+      "tankDiameter": {
+        "$id": "#/properties/tankDiameter",
+        "type": "integer",
+        "title": "The Tank Diameter",
+        "default": 102
+      },      
+      "tankHeight": {
+        "$id": "#/properties/tankHeight",
+        "type": "integer",
+        "title": "The Tank Height",
+        "default": 104
+      },
+      "resolution": {
+        "$id": "#/properties/tankDiameter",
+        "type": "number",
+        "title": "Resolution",
+        "default": 0.7
+      },
+
+      "baffles": {
+        "$id": "#/properties/baffles",
+        "type": "object",
+        "title": "The Baffles",
+        "required": [
+          "numBaffles",
+          "firstBaffleOffset",
+          "innerRadius",
+          "outerRadius",
+          "thickness"
+        ],
+        "properties": {
+          "numBaffles": {
+            "$id": "#/properties/baffles/properties/numBaffles",
+            "type": "integer",
+            "title": "The Numbaffles",
+            "default": 4
+          },
+          "firstBaffleOffset": {
+            "$id": "#/properties/baffles/properties/firstBaffleOffset",
+            "type": "number",
+            "title": "The Firstbaffleoffset",
+            "default": 0.785398185
+          },
+          "innerRadius": {
+            "$id": "#/properties/baffles/properties/innerRadius",
+            "type": "number",
+            "title": "The Innerradius",
+            "default": 39.0659981
+          },
+          "outerRadius": {
+            "$id": "#/properties/baffles/properties/outerRadius",
+            "type": "number",
+            "title": "The Outer Radius",
+            "default": 49.2660027
+          },
+          "thickness": {
+            "$id": "#/properties/baffles/properties/thickness",
+            "type": "number",
+            "title": "The Thickness",
+            "default": 1.36000001
+          }
+        }
+      },
+      "shaft": {
+        "$id": "#/properties/shaft",
+        "type": "object",
+        "title": "The Shaft",
+        "required": [
+          "radius"
+        ],
+        "properties": {
+          "radius": {
+            "$id": "#/properties/shaft/properties/radius",
+            "type": "number",
+            "title": "The Radius",
+            "default": 2.72000003
+          }
+        }
+      },
+      "numImpellers": {
+        "$id": "#/properties/numImpellers",
+        "type": "integer",
+        "title": "The Num Impellers",
+        "default": 1
+      },
+      "impellers": {
+        "$id": "#/properties/impellers",
+        "type": "array",
+        "title": "The Impellers",
+        "items": {
+          "$id": "#/properties/impellers/items",
+          "type": "object",
+          "title": "The Items",
+          "required": [
+            "numBlades",
+            "firstBladeOffset",
+            "uav",
+            "blade_tip_angular_vel_w0",
+            "impeller_position",
+            "blades",
+            "disk",
+            "hub"
+          ],
+          "properties": {
+            "numBlades": {
+              "$id": "#/properties/impellers/items/properties/numBlades",
+              "type": "integer",
+              "title": "The Numblades",
+              "default": 6
+            },
+            "firstBladeOffset": {
+              "$id": "#/properties/impellers/items/properties/firstBladeOffset",
+              "type": "integer",
+              "title": "The Firstbladeoffset",
+              "default": 0
+            },
+            "uav": {
+              "$id": "#/properties/impellers/items/properties/uav",
+              "type": "number",
+              "title": "The Uav",
+              "default": 0.1
+            },
+            "blade_tip_angular_vel_w0": {
+              "$id": "#/properties/impellers/items/properties/blade_tip_angular_vel_w0",
+              "type": "number",
+              "title": "The Blade_tip_angular_vel_w0",
+              "default": 0.00588235306
+            },
+            "impeller_position": {
+              "$id": "#/properties/impellers/items/properties/impeller_position",
+              "type": "number",
+              "title": "The Impeller_position",
+              "default": 69.3333359
+            },
+            "blades": {
+              "$id": "#/properties/impellers/items/properties/blades",
+              "type": "object",
+              "title": "The Blades",
+              "required": [
+                "innerRadius",
+                "outerRadius",
+                "bottom",
+                "top",
+                "bladeThickness"
+              ],
+              "properties": {
+                "innerRadius": {
+                  "$id": "#/properties/impellers/items/properties/blades/properties/innerRadius",
+                  "type": "number",
+                  "title": "The Innerradius",
+                  "default": 8.5
+                },
+                "outerRadius": {
+                  "$id": "#/properties/impellers/items/properties/blades/properties/outerRadius",
+                  "type": "number",
+                  "title": "The Outer Radius",
+                  "default": 17
+                },
+                "bottom": {
+                  "$id": "#/properties/impellers/items/properties/blades/properties/bottom",
+                  "type": "number",
+                  "title": "The Bottom",
+                  "default": 71.4000015
+                },
+                "top": {
+                  "$id": "#/properties/impellers/items/properties/blades/properties/top",
+                  "type": "number",
+                  "title": "The Top",
+                  "default": 64.5999985
+                },
+                "bladeThickness": {
+                  "$id": "#/properties/impellers/items/properties/blades/properties/bladeThickness",
+                  "type": "number",
+                  "title": "The Bladethickness Schema",
+                  "default": 1.36000001
+                }
+              }
+            },
+            "disk": {
+              "$id": "#/properties/impellers/items/properties/disk",
+              "type": "object",
+              "title": "The Disk",
+              "required": [
+                "radius",
+                "bottom",
+                "top"
+              ],
+              "properties": {
+                "radius": {
+                  "$id": "#/properties/impellers/items/properties/disk/properties/radius",
+                  "type": "number",
+                  "title": "The Radius",
+                  "default": 12.75
+                },
+                "bottom": {
+                  "$id": "#/properties/impellers/items/properties/disk/properties/bottom",
+                  "type": "number",
+                  "title": "The Bottom",
+                  "default": 68.6800003
+                },
+                "top": {
+                  "$id": "#/properties/impellers/items/properties/disk/properties/top",
+                  "type": "number",
+                  "title": "The Top",
+                  "default": 67.3199997
+                }
+              }
+            },
+            "hub": {
+              "$id": "#/properties/impellers/items/properties/hub",
+              "type": "object",
+              "title": "The Hub",
+              "required": [
+                "radius",
+                "bottom",
+                "top"
+              ],
+              "properties": {
+                "radius": {
+                  "$id": "#/properties/impellers/items/properties/hub/properties/radius",
+                  "type": "number",
+                  "title": "The Radius",
+                  "default": 5.44000006
+                },
+                "bottom": {
+                  "$id": "#/properties/impellers/items/properties/hub/properties/bottom",
+                  "type": "number",
+                  "title": "The Bottom",
+                  "default": 71.4000015
+                },
+                "top": {
+                  "$id": "#/properties/impellers/items/properties/hub/properties/top",
+                  "type": "number",
+                  "title": "The Top",
+                  "default": 64.5999985
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

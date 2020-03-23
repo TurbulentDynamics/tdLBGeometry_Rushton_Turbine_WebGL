@@ -1,0 +1,44 @@
+{
+    "name": "GeometryConfig",
+    "gridx": "104",
+    "resolution": "0.699999988",
+    "tankDiameter": "102",
+    "starting_step": "0",
+    "impeller_start_angle": "0",
+    "impeller_startup_steps_until_normal_speed": "0",
+    "shaft": {
+        "radius": "2.72000003"
+    },
+    "baffles": {
+        "numBaffles": "4",
+        "firstBaffleOffset": "0.785398185",
+        "innerRadius": "39.0659981",
+        "outerRadius": "49.2660027",
+        "thickness": "1.36000001"
+    },
+    "numImpellers": "1",
+    "impellers": [{
+        "numBlades": "6",
+        "firstBladeOffset": "0",
+        "uav": "0.100000001",
+        "blade_tip_angular_vel_w0": "0.00588235306",
+        "impeller_position": "69.3333359",
+        "blades": {
+            "innerRadius": "8.5",
+            "outerRadius": "17",
+            "bottom": "71.4000015",
+            "top": "64.5999985",
+            "bladeThickness": "1.36000001"
+        },
+        "disk": {
+            "radius": "12.75",
+            "bottom": "68.6800003",
+            "top": "67.3199997"
+        },
+        "hub": {
+            "radius": "5.44000006",
+            "bottom": "71.4000015",
+            "top": "64.5999985"
+        }
+    }]
+}
