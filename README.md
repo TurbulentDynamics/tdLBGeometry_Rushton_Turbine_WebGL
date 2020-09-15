@@ -1,7 +1,7 @@
 # Turbulent Dynamics Geometry Input Rushton Turbine
 Create the input json file for a simple Rushton Turbine
 
-[Graphical Frontend Available Here.](https://turbulentdynamics.github.io/tdGeometry_Rushton_Turbine_WebGL/build/)
+[Graphical Frontend Available Here.](https://turbulentdynamics.github.io/tdLBGeometry_Rushton_Turbine_WebGL/build/)
 
 
 ## Rushton Turbine Image
